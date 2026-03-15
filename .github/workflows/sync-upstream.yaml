@@ -1,0 +1,121 @@
+name: Sync upstream and build
+
+# Check for new upstream releases every 6 hours, or trigger manually
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      force_build:
+        description: 'Force build even if no new release'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  UPSTREAM_REPO: home-assistant/operating-system
+
+jobs:
+  check-upstream:
+    name: Check for new upstream release
+    runs-on: ubuntu-22.04
+    outputs:
+      new_release: ${{ steps.check.outputs.new_release }}
+      release_tag: ${{ steps.check.outputs.release_tag }}
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Check upstream for new release
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Get latest upstream release tag
+          LATEST=$(gh api repos/${{ env.UPSTREAM_REPO }}/releases/latest --jq '.tag_name')
+          echo "Latest upstream release: $LATEST"
+
+          # Check if we already have this tag processed
+          MARKER_FILE=".last-upstream-release"
+          LAST_SYNCED=""
+          if [ -f "$MARKER_FILE" ]; then
+            LAST_SYNCED=$(cat "$MARKER_FILE")
+          fi
+          echo "Last synced: $LAST_SYNCED"
+
+          if [ "$LATEST" != "$LAST_SYNCED" ] || [ "${{ inputs.force_build }}" = "true" ]; then
+            echo "new_release=true" >> "$GITHUB_OUTPUT"
+            echo "release_tag=$LATEST" >> "$GITHUB_OUTPUT"
+            echo "New release detected: $LATEST"
+          else
+            echo "new_release=false" >> "$GITHUB_OUTPUT"
+            echo "release_tag=$LATEST" >> "$GITHUB_OUTPUT"
+            echo "Already up to date"
+          fi
+
+  sync-and-build:
+    name: Sync and build
+    needs: check-upstream
+    if: needs.check-upstream.outputs.new_release == 'true'
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge upstream release
+        id: merge
+        run: |
+          RELEASE_TAG="${{ needs.check-upstream.outputs.release_tag }}"
+          echo "Merging upstream $RELEASE_TAG into dev..."
+
+          git remote add upstream https://github.com/${{ env.UPSTREAM_REPO }}.git || true
+          git fetch upstream --tags
+
+          # Try to merge the release tag
+          if git merge "$RELEASE_TAG" --no-edit -m "Merge upstream $RELEASE_TAG"; then
+            echo "merge_ok=true" >> "$GITHUB_OUTPUT"
+            echo "Merge successful"
+          else
+            echo "merge_ok=false" >> "$GITHUB_OUTPUT"
+            echo "::error::Merge conflict! Manual resolution needed."
+            git merge --abort
+            exit 1
+          fi
+
+      - name: Update sync marker
+        if: steps.merge.outputs.merge_ok == 'true'
+        run: |
+          echo "${{ needs.check-upstream.outputs.release_tag }}" > .last-upstream-release
+          git add .last-upstream-release
+          git commit -m "ci: mark upstream ${{ needs.check-upstream.outputs.release_tag }} as synced" || true
+
+      - name: Push changes
+        if: steps.merge.outputs.merge_ok == 'true'
+        run: git push origin dev
+
+      - name: Trigger board builds
+        if: steps.merge.outputs.merge_ok == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Triggering build for S905X3 boards..."
+          gh workflow run build.yaml \
+            --ref dev \
+            -f boards="x88-pro-x3,h96-max-x3" \
+            -f publish=false \
+            -f run_tests=false \
+            -f hassio_channel=stable
