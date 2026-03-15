@@ -84,6 +84,12 @@
     "label": "board/x88-pro-x3"
   },
   {
+    "id": "h96-max-x3",
+    "defconfig": "h96_max_x3",
+    "architecture": "aarch64",
+    "label": "board/h96-max-x3"
+  },
+  {
     "id": "green",
     "defconfig": "green",
     "architecture": "aarch64",
