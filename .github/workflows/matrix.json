@@ -78,6 +78,12 @@
     "label": "board/yellow"
   },
   {
+    "id": "x88-pro-x3",
+    "defconfig": "x88_pro_x3",
+    "architecture": "aarch64",
+    "label": "board/x88-pro-x3"
+  },
+  {
     "id": "green",
     "defconfig": "green",
     "architecture": "aarch64",
