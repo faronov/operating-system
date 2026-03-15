@@ -1,0 +1,7 @@
+config BR2_PACKAGE_X88_PRO_X3_BOOT
+	bool "X88 Pro X3 Boot Loader"
+	depends on BR2_TARGET_UBOOT
+	help
+	  Pre-built U-Boot binary for X88 Pro X3 (Amlogic S905X3).
+	  Uses ophub community pre-built U-Boot with proper DDR init
+	  and secure boot signing for this TV box.
