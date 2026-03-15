@@ -5,7 +5,7 @@ function hassos_pre_image() {
     local BOOT_DATA="$(path_boot_dir)"
 
     cp "${BINARIES_DIR}/boot.scr" "${BOOT_DATA}/boot.scr"
-    cp "${BINARIES_DIR}/meson-sm1-h96-max-x3.dtb" "${BOOT_DATA}/meson-sm1-h96-max-x3.dtb"
+    cp "${BINARIES_DIR}/meson-sm1-h96-max.dtb" "${BOOT_DATA}/meson-sm1-h96-max.dtb"
 
     mkdir -p "${BOOT_DATA}/overlays"
     cp "${BINARIES_DIR}"/*.dtbo "${BOOT_DATA}/overlays/" 2>/dev/null || true
