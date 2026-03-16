@@ -114,6 +114,7 @@ jobs:
         run: |
           echo "Triggering build for S905X3 boards..."
           gh workflow run build.yaml \
+            --repo ${{ github.repository }} \
             --ref dev \
             -f boards="x88-pro-x3,h96-max-x3" \
             -f publish=false \
