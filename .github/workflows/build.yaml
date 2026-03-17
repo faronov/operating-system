@@ -31,6 +31,11 @@ on:
           - stable
           - beta
           - dev
+      release_build:
+        description: 'Build as release (clean version, no dev suffix)'
+        required: true
+        type: boolean
+        default: false
 
 env:
   PYTHON_VERSION: "3.13"
@@ -77,7 +82,7 @@ jobs:
       - name: Generate development version
         shell: bash
         id: version_dev
-        if: ${{ github.event_name != 'release' }}
+        if: ${{ github.event_name != 'release' && inputs.release_build != true }}
         env:
           PUBLISH_BUILD: ${{ steps.check_publish.outputs.publish_build }}
         run: |
@@ -89,11 +94,16 @@ jobs:
           echo "version_dev=${version_dev}" >> $GITHUB_OUTPUT
 
       - name: Set version suffix
-        if: ${{ github.event_name != 'release' }}
+        if: ${{ github.event_name != 'release' && inputs.release_build != true }}
         env:
           VERSION_DEV: ${{ steps.version_dev.outputs.version_dev }}
         run: |
           sed -i -E "s/(^VERSION_SUFFIX=\").*(\"$)/\1${VERSION_DEV}\2/" buildroot-external/meta
+
+      - name: Clear version suffix for release build
+        if: ${{ inputs.release_build == true }}
+        run: |
+          sed -i -E "s/(^VERSION_SUFFIX=\").*(\"$)/\1\2/" buildroot-external/meta
 
       - name: Get version
         id: version
@@ -131,7 +141,7 @@ jobs:
           fi
 
           if [[ "${{ inputs.hassio_channel }}" == "default" ]]; then
-            if [[ "${{ github.event_name }}" == "release" ]]; then
+            if [[ "${{ github.event_name }}" == "release" ]] || [[ "${{ inputs.release_build }}" == "true" ]]; then
               echo "hassio_channel_option=BR2_PACKAGE_HASSIO_CHANNEL_STABLE" >> "$GITHUB_OUTPUT"
             else
               echo "hassio_channel_option=BR2_PACKAGE_HASSIO_CHANNEL_DEV" >> "$GITHUB_OUTPUT"
