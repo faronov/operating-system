@@ -10,5 +10,11 @@
     "defconfig": "h96_max_x3",
     "architecture": "aarch64",
     "label": "board/h96-max-x3"
+  },
+  {
+    "id": "firefly-itx-3588j",
+    "defconfig": "firefly_itx_3588j",
+    "architecture": "aarch64",
+    "label": "board/firefly-itx-3588j"
   }
 ]
