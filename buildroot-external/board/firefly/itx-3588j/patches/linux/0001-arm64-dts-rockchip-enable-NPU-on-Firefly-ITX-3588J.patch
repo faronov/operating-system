@@ -1,0 +1,35 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Faronov <faronov@users.noreply.github.com>
+Date: Tue, 18 Mar 2026 00:00:00 +0000
+Subject: [PATCH] arm64: dts: rockchip: enable NPU on Firefly ITX-3588J
+
+Enable the three RKNN NPU cores on the Firefly ITX-3588J board.
+The Core-3588J SoM already provides the vdd_npu_s0 regulator.
+The NPU device nodes exist in rk3588-base.dtsi but are disabled
+by default; this patch enables them for use with the mainline
+rocket accelerator driver.
+
+Signed-off-by: Alexander Faronov <faronov@users.noreply.github.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3588-firefly-itx-3588j.dts | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-firefly-itx-3588j.dts b/arch/arm64/boot/dts/rockchip/rk3588-firefly-itx-3588j.dts
+index 1234567..abcdefg 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-firefly-itx-3588j.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588-firefly-itx-3588j.dts
+@@ -700,3 +700,15 @@
+ 	};
+ };
++
++&rknn_core_0 {
++	status = "okay";
++};
++
++&rknn_core_1 {
++	status = "okay";
++};
++
++&rknn_core_2 {
++	status = "okay";
++};
