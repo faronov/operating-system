@@ -9,6 +9,9 @@ function hassos_pre_image() {
 
     cp "${BOARD_DIR}/boot-env.txt" "${BOOT_DATA}/haos-config.txt"
     cp "${BOARD_DIR}/cmdline.txt" "${BOOT_DATA}/cmdline.txt"
+
+    # Kernel 6.18 rootfs is larger than default 256M partition
+    export SYSTEM_SIZE=320M
 }
 
 
