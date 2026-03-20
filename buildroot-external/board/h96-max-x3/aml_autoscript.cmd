@@ -15,18 +15,22 @@
 
 echo "=== HAOS Boot for H96 Max X3 ==="
 
-# SD card is mmc 0 in this U-Boot
-setenv devnum 0
+# SD card is mmc 1 in this U-Boot (mmc 0 = eMMC)
+setenv devnum 1
 
 # Memory addresses matching this U-Boot
 setenv kernel_addr_r 0x1080000
 setenv fdt_addr_r 0x1000000
 setenv ramdisk_addr_r 0x3080000
 
-# Load device tree
+# Load device tree - try mmc 1 first, then mmc 0
 echo "Loading DTB..."
-if fatload mmc 0:1 ${fdt_addr_r} meson-sm1-h96-max.dtb; then
-    echo "DTB loaded OK"
+if fatload mmc 1:1 ${fdt_addr_r} meson-sm1-h96-max.dtb; then
+    setenv devnum 1
+    echo "DTB loaded from mmc 1"
+elif fatload mmc 0:1 ${fdt_addr_r} meson-sm1-h96-max.dtb; then
+    setenv devnum 0
+    echo "DTB loaded from mmc 0"
 else
     echo "DTB load FAILED"
 fi
@@ -34,7 +38,7 @@ fdt addr ${fdt_addr_r}
 
 # Load uImage (gzip-compressed kernel in legacy format for bootm)
 echo "Loading uImage kernel..."
-if fatload mmc 0:1 ${ramdisk_addr_r} uImage; then
+if fatload mmc ${devnum}:1 ${ramdisk_addr_r} uImage; then
     echo "uImage loaded OK"
 else
     echo "uImage load FAILED - no boot"
