@@ -11,6 +11,19 @@ function hassos_pre_image() {
     cp "${BINARIES_DIR}"/*.dtbo "${BOOT_DATA}/overlays/" 2>/dev/null || true
     cp "${BOARD_DIR}/boot-env.txt" "${BOOT_DATA}/haos-config.txt"
     cp "${BOARD_DIR}/cmdline.txt" "${BOOT_DATA}/cmdline.txt"
+
+    # Vendor U-Boot (2015.01) on eMMC only supports fatload + bootm.
+    # Create uImage for bootm (needed when booting via adb reboot update).
+    gzip -k -9 "${BINARIES_DIR}/Image"
+    mkimage -A arm64 -O linux -T kernel -C gzip \
+        -a 0x1080000 -e 0x1080000 \
+        -d "${BINARIES_DIR}/Image.gz" "${BOOT_DATA}/uImage"
+    rm -f "${BINARIES_DIR}/Image.gz"
+
+    # Compile aml_autoscript for vendor U-Boot SD boot via 'reboot update'
+    mkimage -A arm64 -O linux -T script -C none \
+        -d "${BOARD_DIR}/aml_autoscript.cmd" "${BOOT_DATA}/aml_autoscript"
+    cp "${BOOT_DATA}/aml_autoscript" "${BOOT_DATA}/s905_autoscript"
 }
 
 
