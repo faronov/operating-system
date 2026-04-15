@@ -69,7 +69,7 @@ jobs:
         with:
           ref: dev
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Configure git
         run: |
@@ -110,7 +110,7 @@ jobs:
       - name: Trigger board builds
         if: steps.merge.outputs.merge_ok == 'true'
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           echo "Triggering build for S905X3 boards..."
           gh workflow run build.yaml \
