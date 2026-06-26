@@ -19,7 +19,7 @@ Signed-off-by: HAOS Fork <haos@local>
 diff --git a/arch/arm64/boot/dts/amlogic/Makefile b/arch/arm64/boot/dts/amlogic/Makefile
 --- a/arch/arm64/boot/dts/amlogic/Makefile
 +++ b/arch/arm64/boot/dts/amlogic/Makefile
-@@ -92,6 +92,8 @@
+@@ -92,4 +92,6 @@
  dtb-$(CONFIG_ARCH_MESON) += meson-sm1-x96-air-gbit.dtb
  dtb-$(CONFIG_ARCH_MESON) += meson-sm1-x96-air.dtb
 +dtb-$(CONFIG_ARCH_MESON) += meson-sm1-x88-pro-x3.dtb
